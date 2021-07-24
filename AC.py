@@ -66,7 +66,7 @@ class AC:
             "Hash": hashlib.sha256(input("Mot de passe provisoire : ").encode()).hexdigest(),
             "Location": self.getLocation
         }
-        self.readData()
+        fData = self.readData()
         newID = ''
         for user in reversed(fData.keys()):
             if 'U' == user[0]:
@@ -82,7 +82,7 @@ class AC:
     def modifyUser(self):
         clear()
         user = input('Quel User voulez-vous modifier : ')
-        self.readData()
+        fData = self.readData()
         if user in fData.keys():
             choice = input("""Que voulez-vous modifier : 
 1) Nom
@@ -112,7 +112,7 @@ class AC:
     def deleteUser(self):
         clear()
         user = input('Veuillez entrer un User à supprimer : ').upper()
-        self.readData()
+        fData = self.readData()
         if user in fData.keys() and self.getLocation() == fData[user]['Location']:
             valid = ''
             while valid not in ['y','n']:
@@ -120,7 +120,7 @@ class AC:
             if valid == 'n':
                 self.gestUsers()
                 return
-            self.readData()
+            fData = self.readData()
             fData.pop(user)
             self.writeData(fData)
             input('Appuyer sur ENTRER pour revenir au menu')
@@ -132,7 +132,7 @@ class AC:
     
     def listingUser(self):
         clear()
-        self.readData()
+        fData = self.readData()
         pprint(fData)
         input('Appuyer sur ENTRER pour revenir au menu')
         self.gestUsers()

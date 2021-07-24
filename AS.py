@@ -93,7 +93,7 @@ class AS:
             "Hash": hashlib.sha256(input("Mot de passe provisoire : ").encode()).hexdigest(),
             "Location": input("Localisation : ")
         }
-        self.readData()
+        fData = self.readData()
         hasID = False
         for user in reversed(fData.keys()):
             if newID == user[:len(newID)]:
@@ -119,7 +119,7 @@ class AS:
         if int(port) < 1 or int(port) > 65535:
             self.scanPorts() 
             return
-        scan = Thread(target=PortScanner.scan,daemon=True, args=[port])
+        scan = Thread(target=PortScanner.scan,daemon=True, args=(port,))
         scan.start()
         #scan.join()
         input('\nScan des ports lancé, appuyez sur \"Entrer\" pour continuer')
@@ -141,7 +141,7 @@ class AS:
     def deleteUser(self):
         clear()
         user = input('Veuillez entrer un User à supprimer : ').upper()
-        self.readData()
+        fData = self.readData()
         if user in fData.keys():
             valid = ''
             while valid not in ['y','n']:
@@ -149,7 +149,7 @@ class AS:
             if valid == 'n':
                 self.gestUsers()
                 return
-            self.readData()
+            fData = self.readData()
             fData.pop(user)
             self.writeData(fData)
             input('Appuyer sur ENTRER pour revenir au menu')
@@ -162,7 +162,7 @@ class AS:
 
     def listingUser(self):
         clear()
-        self.readData()
+        fData = self.readData()
         pprint(fData)
         input('Appuyer sur ENTRER pour revenir au menu')
         self.gestUsers()
@@ -171,7 +171,7 @@ class AS:
     def modifyUser(self):
         clear()
         user = input('Quel User voulez-vous modifier : ')
-        self.readData()
+        fData = self.readData()
         if user.upper() in fData.keys():
             clear()
             choice = input("""Que voulez-vous modifier : 
