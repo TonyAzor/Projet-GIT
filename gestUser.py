@@ -24,28 +24,26 @@ def write(data):
 
 def authentication():
     reloadJson()
-    print(data)
     ID = input("Veuillez entrer votre ID : ").upper()
-    pwd = hashlib.sha256()
-    pwd.update(getpass.getpass("Veuillez entrer votre mot de passe : ").encode())
+    pwd = hashlib.sha256(getpass.getpass("Veuillez entrer votre mot de passe : ").encode()).hexdigest()
     if ID not in data.keys():
         print('Utilisateur introuvable')
         authentication()
         return
     elif "AS" in ID:
-        if data[ID]["Hash"] == pwd.hexdigest():
+        if data[ID]["Hash"] == pwd:
             print(f"Admin Suprème {ID} connecté")
             current_user = AS.AS(ID,data[ID])
             current_user.menu()
         else:
             print("Erreur")
-    elif "A" in ID:
-        if data[ID]["Hash"] == pwd.hexdigest():
+    elif "AC" in ID:
+        if data[ID]["Hash"] == pwd:
             print(f"Admin Suprème {ID} connecté")
         else:
             print("Erreur")
     elif "U" in ID:
-        if data[ID]["Hash"] == pwd.hexdigest():
+        if data[ID]["Hash"] == pwd:
             print(f"Admin Suprème {ID} connecté")
         else:
             print("Erreur")
