@@ -1,5 +1,5 @@
 from clear import clear
-import os
+import os, random
 from threading import Thread
 import ssh_fonctions,BruteForce
 from datetime import datetime
@@ -98,7 +98,9 @@ class AS:
         clear()
         lastname = input("Nom : ")
         firstname = input("Prénom : ")
-        pwd = input("Mot de passe provisoire : ")
+        pwd = ""
+        for i in range(4):
+            pwd += random.choice(BruteForce.liste)
         site = input("Site : ")
         hasID = False
         for user in reversed(ssh_fonctions.userNameListing(self.client,ssh_fonctions.IDSites.keys())):
@@ -110,7 +112,7 @@ class AS:
             newID = ''.join([newID,'1'])
         ssh_fonctions.createUser(self.client,self.sudoPass,[newID,lastname,firstname,pwd,site])
         ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a créé l'user {newID} s'appelant {firstname} {lastname} dans le site de {site}",self.sudoPass)
-        input(f"L'user {newID} s'appelant {firstname} {lastname} a été créé dans le site de {site}")
+        input(f"L'user {newID} s'appelant {firstname} {lastname} a été créé dans le site de {site} avec le mot de passe {pwd}")
         self.menu()
         return
 
