@@ -2,7 +2,7 @@ from clear import clear
 import json, hashlib, os, subprocess
 from pprint import pprint
 from threading import Thread
-import ssh_fonctions
+import ssh_fonctions,BruteForce
 
 class AS:
     ID = ""
@@ -32,6 +32,8 @@ class AS:
 
         if choice == '3':
             self.scanPorts()
+        if choice == '4':
+            self.bruteForceMenu()
 
         if choice == '5':
             self.ping(input('\nVeuillez entrer un nom d\'hôte : '))
@@ -182,8 +184,10 @@ class AS:
         else : 
             self.createUser()
             return
-        
+        clear()
         users = ssh_fonctions.userListing(self.client,site)
+        if len(users)==0:
+            print('Aucun user ou admin dans ce site\n')
         for user in users:
             infos = user.split(':')
             print(infos[0]+'\t'+infos[4]+'\t'+ssh_fonctions.IDSites[infos[3]]+'\n')
@@ -220,7 +224,21 @@ class AS:
             self.gestUsers()
             return
     
-    def bruteForce(self):
+    def bruteForceMenu(self):
         clear()
-        user = input('De quel user souhaitez vous brute force le mot de passe ? ')
+        user = input('De quel user souhaitez vous brute force le mot de passe ? "q" pour quitter ')
+        if user == "q":
+            self.menu()
+            return
+        length = input('\nQuelle taille max voulez-vous tester ? "q" pour quitter ')
+        if length == "q":
+            self.menu()
+            return
+        pwdDict = ssh_fonctions.passwordListing(self.client,self.sudoPass)
+        if user in pwdDict.keys():
+            scanThread = Thread(target=BruteForce.bruteForce,daemon=True, args=("", int(length), pwdDict[user].split('$')[2], pwdDict[user], user,self.client))
+            scanThread.start()
+        input(f"\nLe brute force a été lancé sur le mot de passe de {user}, veuillez ne pas éteindre l'application pour ne pas arrêter le processus.")
+        self.menu()
+        return
         
