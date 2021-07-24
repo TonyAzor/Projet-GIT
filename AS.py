@@ -47,6 +47,8 @@ class AS:
 """)
         if choice == '1':
             self.createUser()
+        if choice == '2':
+            self.modifyUser()
         if choice == '3':
             self.deleteUser()
         if choice == '4':
@@ -167,7 +169,7 @@ class AS:
         f = open(self.user_file_path, 'r')
         fData = json.load(f)
         f.close()
-        if user in fData.keys():
+        if user.upper() in fData.keys():
             clear()
             choice = input("""Que voulez-vous modifier : 
 1) Nom
@@ -185,6 +187,9 @@ class AS:
                 fData[user]['Hash'] = hashlib.sha256(input("\nMot de passe provisoire : ").encode()).hexdigest()
             else:
                 fData[user][choiceList[int(choice)]] = input("\nEntrez la nouvelle valeur : ")
+            f = open(self.user_file_path, 'w')
+            json.dump(fData,f,indent=4)
+            f.close()
             self.gestUsers()
             return
         else:
