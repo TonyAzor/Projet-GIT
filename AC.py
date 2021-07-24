@@ -251,3 +251,5 @@ class AC:
         elif action == '3':
             self.auditMenu()
             return    
+        self.actionAuditMenu(aType)
+        return
