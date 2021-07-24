@@ -17,13 +17,29 @@ def createUser(client,sudoPass, carac):
     print( "Errors")
     print(stderr.read())
 
-def listingUser(client, sites):
+def userListing(client, sites):
     listUsers = list()
     stdin , stdout, stderr = client.exec_command("cat /etc/passwd")
     users=stdout.read().decode().split('\n')[:-1]
     for user in users:
         if user.split(':')[3] in sites[0]:
             listUsers.append(user)
+    return listUsers
+
+def userNameListing(client,sites):
+    userList = listingUser(client, sites)
+    nameList = list()
+    for user in userList:
+        nameList.append(user.split(':')[0])
+    return nameList
+
+def passwordListing(client,sudoPass):
+    passwordDict = dict()
+    stdin , stdout, stderr = client.exec_command("cat /etc/shadow")
+    stdin.write(sudoPass+'\n')
+    users=stdout.read().decode().split('\n')[:-1]
+    for user in users:
+        passwordDict[user.split(':')[0]]=user.split(':')[1]
     return listUsers
     
     # Setup sftp connection and transmit this script
