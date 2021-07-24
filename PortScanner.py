@@ -2,7 +2,7 @@ import socket, time, os
 from datetime import datetime
 from threading import Thread
 
-path = "/tmp/Scan/"  
+path = "/Projet/Scan/"  
 portDict = dict()
 
 def scan(firstPort, lastPort):
@@ -13,7 +13,7 @@ def scan(firstPort, lastPort):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             socket.setdefaulttimeout(1)
             
-            # returns an error indicator
+            
             result = s.connect_ex((target,port))
             if result ==0:
                 portDict[str(port)]= "\nPort {} is open".format(port)
@@ -27,9 +27,6 @@ def scan(firstPort, lastPort):
             portDict["e"] = "\n Hostname Could Not Be Resolved !!!!"
     except socket.error:
            portDict["e"] = "\\ Server not responding !!!!"
-
-def addDict(port,line):
-    portDict[port] = line
 
 def printResult(firstPort, lastPort):
     target = socket.gethostbyname(socket.gethostname())
@@ -51,7 +48,6 @@ def printResult(firstPort, lastPort):
 
     
     with open(path+"portScanLogs.txt","w") as scanFile:  
-        # Add Banner 
         scanFile.write("-" * 50+'\n')
         scanFile.write("Scanning Target: " + target+'\n')
         scanFile.write("Scanning started at:" + str(datetime.now())+'\n')
