@@ -28,6 +28,8 @@ class AS:
 """)
         if choice == '1':
             self.gestUsers()
+        if choice == '2':
+            self.ftpMenu()
 
         if choice == '3':
             self.scanPorts()
@@ -264,3 +266,97 @@ class AS:
         self.menu()
         return
         
+    def ftpMenu(self):
+        clear()
+        site = input("""Veuillez choisir un site : 
+1) Paris
+2) Strasbourg
+3) Rennes
+4) Grenoble
+5) Retour\n\n""")
+        if site == "5":
+            self.menu()
+            return
+        if site in [str(i) for i in range(1,5)]:
+            siteList = ["","paris","strasbourg","rennes","grenoble"]
+            self.siteFtpMenu(siteList[int(site)])
+            return
+        self.ftpMenu()
+        return
+        
+
+    def siteFtpMenu(self,site):
+        clear()
+        aType = input("""Veuillez indiquer quel est le type d'audit que vous souhaitez voir :
+1) Comptable
+2) Contractuel
+3) Environnement
+4) Interne
+5) Légal
+6) Organisationnel
+7) Retour
+
+""")    
+        typeList = ["","comptable","contractuel","environnement","interne","legal","organisationnel"]
+        if aType == "7":
+            self.ftpMenu()
+            return
+        elif aType in [str(i) for i in range(1,7)]:
+            self.auditFtpMenu(site,typeList[int(aType)])
+            return
+        else:
+            self.siteFtpMenu(site)
+            return
+
+    def auditFtpMenu(self,site,aType,archives = ""):
+        clear()
+        ssh_fonctions.fileListing(self.client,f"/Projet/Audits/{site}/{aType}/{archives}")
+        action = input("""Que voulez-vous faire ?
+1) Archiver
+2) Copier
+3) Télécharger
+4) Supprimer
+5) Accéder aux archives
+6) Retour\n\n""")
+        if action =="6":
+            self.siteFtpMenu(site)
+            return
+        elif action == "1":
+            files = input("Entrez le ou les noms (séparés par une \",\") des fichiers à archiver : \n\n")
+            for f in files.split(","):
+                self.client.exec_command(f"mv /Projet/Audits/{site}/{aType}/{archives}{f} /Projet/Audits/{site}/{aType}/archives")
+            input("Les fichiers ont été archivés")
+        elif action == "2":
+            files = input("Entrez le ou les noms (séparés par une \",\") des fichiers à copier : \n\n")
+            newNames = input("\n\nEntrez le ou les nouveaux noms (avec les extensions et séparés par une \",\") des fichiers à copier : \n\n")
+            if len(files.split(",")) != len(newNames.split(",")):
+                input("Il n'y a pas le même nombres de nouveaux noms que de fichiers")
+                self.auditFtpMenu(site,aType,archives)
+                return
+            for i in range(len(files.split(","))):
+                f = files.split(",")[i]
+                n = newNames.split(",")[i]
+                self.client.exec_command(f"cp /Projet/Audits/{site}/{aType}/{archives}{f} /Projet/Audits/{site}/{aType}/{archives}{n}")
+            input("Les fichiers a été copiés")
+        elif action == "3":
+            try:
+                files = input("Entrez le ou les noms (séparés par une \",\") des fichiers à télécharger : \n\n")
+                sftp = self.client.open_sftp()
+                for f in files.split(","):
+                    sftp.get(f"/Projet/Audits/{site}/{aType}/{archives}{f}",f"C:\\Users\\{os.environ['USERNAME']}\\Desktop\\{f}")
+                sftp.close()
+                input("Les fichiers ont été téléchargés")
+            except IOError as e:
+                input(e)
+        elif action == "4":
+            files = input("Entrez le ou les noms (séparés par une \",\") des fichiers à supprimer : \n\n")
+            for f in files.split(","):
+                self.client.exec_command(f"rm /Projet/Audits/{site}/{aType}/{archives}{f}")
+            input("Les fichiers ont été supprimé")    
+            
+        elif action == "5":
+            archives = "archives/"
+        self.auditFtpMenu(site,aType,archives)
+        return
+
+
