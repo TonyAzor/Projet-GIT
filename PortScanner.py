@@ -2,7 +2,7 @@ import socket, time, os
 from datetime import datetime
 from threading import Thread
 
-path = "/tmp/Scan"  
+path = "/tmp/Scan/"  
 portDict = dict()
 
 def scan(firstPort, lastPort):
@@ -64,13 +64,12 @@ def printResult(firstPort, lastPort):
 def start():
     while True:
         time.sleep(5)
-        if os.path.exists(path+"portScanLogs"):
+        if os.path.exists(path+"portScanLogs.txt"):
             continue
         else:
             files = os.listdir(path)
             for File in files:
                 if ".scan" in File:
-                    print("ok")
                     ports = File[:-5].split("-")
                     if len(ports) == 1 and ports[0].isnumeric():
                         if int(ports[0]) > 0 and int(ports[0])<65536:
@@ -78,8 +77,7 @@ def start():
                     elif len(ports) == 2 and ports[0].isnumeric() and ports[1].isnumeric():
                         if int(ports[0]) > 0 and int(ports[0])<=int(ports[1]) and int(ports[1])<65536:
                             printResult(int(ports[0]),int(ports[1]))
-                    os.remove(path+File)
-                #os.unlink(path+File)     
+                os.unlink(path+File)     
 
 
 start()
