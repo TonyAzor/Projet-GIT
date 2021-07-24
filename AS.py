@@ -1,6 +1,5 @@
 from clear import clear
-import json, hashlib, os, subprocess
-from pprint import pprint
+import os
 from threading import Thread
 import ssh_fonctions,BruteForce
 
@@ -34,7 +33,6 @@ class AS:
             self.scanPorts()
         if choice == '4':
             self.bruteForceMenu()
-
         if choice == '5':
             self.ping(input('\nVeuillez entrer un nom d\'hôte : '))
         if choice == '6':
@@ -92,7 +90,7 @@ class AS:
         pwd = input("Mot de passe provisoire : ")
         site = input("Site : ")
         hasID = False
-        for user in reversed(ssh_fonctions.userNameListing(self.client,[list(ssh_fonctions.SitesID.values())])):
+        for user in reversed(ssh_fonctions.userNameListing(self.client,ssh_fonctions.IDSites.keys())):
             if newID == user[:len(newID)] and user[len(newID):].isnumeric():
                 newID = ''.join([newID,str(int(user[len(newID):])+1)])
                 hasID = True
@@ -141,7 +139,7 @@ class AS:
         clear()
         user = input('Veuillez entrer un User à supprimer : ').upper()
 
-        if user in reversed(ssh_fonctions.userNameListing(self.client,[list(ssh_fonctions.SitesID.values())])):
+        if user in reversed(ssh_fonctions.userNameListing(self.client,ssh_fonctions.IDSites.keys())):
             valid = ''
             while valid not in ['y','n']:
                 valid = input(f'\nEtes-vous sûr de vouloir supprimer {user}?(y/n)').lower()
@@ -172,15 +170,15 @@ class AS:
 """)    
         site = list()
         if choice == '1':
-            site.append(list(ssh_fonctions.SitesID.values()))
+            site=ssh_fonctions.IDSites.keys()
         elif choice == '2':
-            site.append([ssh_fonctions.SitesID['paris'],None])
+            site=[ssh_fonctions.SitesID['paris']]
         elif choice == '3':
-            site.append([ssh_fonctions.SitesID['grenoble'],None])
+            site=[ssh_fonctions.SitesID['grenoble']]
         elif choice == '4':
-            site.append([ssh_fonctions.SitesID['strasbourg'],None])
+            site=[ssh_fonctions.SitesID['strasbourg']]
         elif choice == '5':
-            site.append([ssh_fonctions.SitesID['rennes'],None])
+            site=[ssh_fonctions.SitesID['rennes']]
         else : 
             self.createUser()
             return
@@ -198,39 +196,63 @@ class AS:
     def modifyUser(self):
         clear()
         user = input('Quel User voulez-vous modifier : ')
-        if user.upper() in reversed(ssh_fonctions.userNameListing(self.client,[list(ssh_fonctions.SitesID.values())])):
+        if user.upper() in reversed(ssh_fonctions.userNameListing(self.client,ssh_fonctions.IDSites.keys())):
             clear()
             choice = input("""Que voulez-vous modifier : 
-1) Nom
-2) Prénom
-3) Mot de passe
-4) Localisation
-5) Retour
+1) Nom et prénom
+2) Mot de passe
+3) Site
+4) Retour
 
 """)    
-            if choice == '5':
+            if choice == '1':
+                newName = input("Veuillez entrer le nouveau nom ET prénom, entrez 'q' pour revenir : ")
+                if newName == 'q':
+                    self.gestUsers()
+                    return
+                command = f"sudo -S usermod -c \"{newName}\" {user}" 
+                stdin , stdout, stderr = self.client.exec_command(command)
+                stdin.write(self.sudoPass+'\n')
+                stdin.flush()     
+                
+            if choice == '2':
+                newPassword = input("Veuillez entrer le nouveau mot de passe, entrez 'q' pour revenir : ")
+                if newPassword == 'q':
+                    self.gestUsers()
+                    return
+                command = f"sudo -S chpasswd <<< {user}:{newPassword}" 
+                stdin , stdout, stderr = self.client.exec_command(command)
+                stdin.write(self.sudoPass+'\n')
+                stdin.flush()    
+            if choice == '3':
+                newGroup = input("Veuillez entrer le nouveau groupe, entrez 'q' pour revenir : ")
+                if newName == 'q':
+                    self.gestUsers()
+                    return
+                command = f"sudo -S usermod -g {newGroup} {user}" 
+                stdin , stdout, stderr = self.client.exec_command(command)
+                stdin.write(self.sudoPass+'\n')
+                stdin.flush()  
+            if choice == '4':
                 self.gestUsers()
                 return
-            choiceList = ['','Nom', 'Prénom','', 'Location']
-            if choice == '3':
-                pass#fData[user]['Hash'] = hashlib.sha256(input("\nMot de passe provisoire : ").encode()).hexdigest()
             else:
-                pass#fData[user][choiceList[int(choice)]] = input("\nEntrez la nouvelle valeur : ")
+                self.modifyUser()
+                return
+            
 
-            self.gestUsers()
-            return
         else:
-            input("\nCe user n'existe pas ou ne fait pas parti de votre site, appuyez sur \"entrer\" pour continuer")
-            self.gestUsers()
-            return
+            input("\nCe user n'existe pas, appuyez sur \"entrer\" pour continuer")
+        self.gestUsers()
+        return
     
     def bruteForceMenu(self):
         clear()
-        user = input('De quel user souhaitez vous brute force le mot de passe ? "q" pour quitter ')
+        user = input('De quel user souhaitez vous brute force le mot de passe ? "q" pour quitter : ')
         if user == "q":
             self.menu()
             return
-        length = input('\nQuelle taille max voulez-vous tester ? "q" pour quitter ')
+        length = input('\nQuelle taille max voulez-vous tester ? "q" pour quitter : ')
         if length == "q":
             self.menu()
             return
