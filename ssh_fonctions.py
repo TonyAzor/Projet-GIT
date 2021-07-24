@@ -46,6 +46,14 @@ def userSite(client, ID):
     for user in userList:
         if ID in user.split(':')[0]:
             return user.split(':')[3]
+
+def fileListing(client, path):
+    #stdin , stdout, stderr = client.exec_command("cd ")
+    stdin , stdout, stderr = client.exec_command("ls "+path)
+    
+    
+    print(stdout.read().decode())
+
     
     # Setup sftp connection and transmit this script
     #sftp = client.open_sftp()
