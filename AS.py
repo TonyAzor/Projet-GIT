@@ -95,6 +95,7 @@ class AS:
         else : 
             self.createUser()
             return
+        clear()
         lastname = input("Nom : ")
         firstname = input("Prénom : ")
         pwd = input("Mot de passe provisoire : ")
@@ -160,7 +161,7 @@ class AS:
             if valid == 'n':
                 self.gestUsers()
                 return
-            stdin , stdout, stderr = self.client.exec_command(f'sudo -S deluser {user}')
+            stdin , stdout, stderr = self.client.exec_command(f'sudo -S userdel --force -r {user}')
             stdin.write(self.sudoPass+'\n')
             stdin.flush()
             ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a supprimé l'user {user}",self.sudoPass)
