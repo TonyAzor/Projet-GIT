@@ -1,4 +1,5 @@
 from clear import clear
+
 import random, os
 import ssh_fonctions, BruteForce
 from datetime import datetime
@@ -15,7 +16,6 @@ class AC:
         self.sudoPass=sudoPass
         self.Site = ssh_fonctions.userSite(sshClient,ID)
         
-
     
     def menu(self):
         clear()
@@ -111,6 +111,7 @@ class AC:
             if valid == 'n':
                 self.gestUsers()
                 return
+
             stdin , stdout, stderr = self.client.exec_command(f'sudo -S userdel --force -r {user}')
             stdin.write(self.sudoPass+'\n')
             stdin.flush()
