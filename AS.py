@@ -24,7 +24,8 @@ class AS:
 3) Scan des ports
 4) Simuler une attaque brute force
 5) Ping
-6) Quitter
+6) Gestion des logs
+7) Quitter
 
 """)
         if choice == '1':
@@ -38,6 +39,8 @@ class AS:
         elif choice == '5':
             self.ping(input('\nVeuillez entrer un nom d\'hôte : '))
         elif choice == '6':
+            self.logsMenu()
+        elif choice == '7':
             return
         else:
             self.menu()
@@ -382,4 +385,33 @@ class AS:
         self.auditFtpMenu(site,aType,archives)
         return
 
+    def logsMenu(self):
+        clear()
+        action = input("""Que voulez-vous faire :
+1) Lire le fichier
+2) Réinitialiser le fichier
+3) Télécharger le fichier
+4) Retour
+5) Quitter\n\n""")
+        if action == '1':
+            stdin , stdout, stderr = self.client.exec_command("cat /Projet/Logs/logs")
+            input(stdout.read().decode())
+        elif action == '2':
+            ssh_fonctions.logReset(self.client,self.sudoPass)
+            input("Le fichier a été réinitialisé")
+        elif action == '3':
+            try:
+                sftp = self.client.open_sftp()
+                sftp.get(f"/Projet/Logs/logs",f"C:\\Users\\{os.environ['USERNAME']}\\Desktop\\logs")
+                sftp.close()
+                input("Le fichier a été téléchargé")
+            except IOError as e:
+                input(e)
+        elif action == '4':
+            self.menu()
+            return
+        elif action == '5':
+            return 
+        self.logsMenu()
+        return
 
