@@ -2,16 +2,17 @@ from clear import clear
 import json, hashlib, os, subprocess
 from pprint import pprint
 from threading import Thread
-import PortScanner
+import ssh_fonctions
 
 class AS:
     ID = ""
-    data = dict()
-    user_file_path = "Projet-Python\\Users.json"
+    client = None
+    sudoPass = ""
 
-    def __init__(self, ID, data):
+    def __init__(self, ID,sshClient,sudoPass):
         self.ID = ID
-        self.data = data
+        self.client = sshClient
+        self.sudoPass=sudoPass
         
 
     
@@ -64,64 +65,60 @@ class AS:
 
     def createUser(self):
         newID = ''
-        ok =False
-        while ok == False:
-            clear()
-            newID = input("""Veuillez choisir le type d'utilisateur : 
+        clear()
+        newID = input("""Veuillez choisir le type d'utilisateur : 
 1) Utilisateur
 2) Administrateur
 3) Administrateur Suprème
 4) Retour
 
 """)
-            if newID == '1':
-                newID = 'U'
-                ok = True
-            elif newID == '2':
-                newID = 'AC'
-                ok = True
-            elif newID == '3':
-                newID = 'AS'
-                ok = True
-            elif newID == '4':
-                self.gestUsers()
-                return
-            else : ok = False
-        data = {
-            "Nom": input("Nom : "),
-            "Prénom":input("Prénom : "),
-            "Hash": hashlib.sha256(input("Mot de passe provisoire : ").encode()).hexdigest(),
-            "Location": input("Localisation : ")
-        }
-        fData = self.readData()
+        if newID == '1':
+            newID = 'U'
+        elif newID == '2':
+            newID = 'AC'
+        elif newID == '3':
+            newID = 'AS'
+        elif newID == '4':
+            self.gestUsers()
+            return
+        else : 
+            self.createUser()
+            return
+        lastname = input("Nom : ")
+        firstname = input("Prénom : ")
+        pwd = input("Mot de passe provisoire : ")
+        site = input("Site : ")
         hasID = False
-        for user in reversed(fData.keys()):
-            if newID == user[:len(newID)]:
+        for user in reversed(ssh_fonctions.listingUser(self.client,[list(ssh_fonctions.SitesID.values())])):
+            if newID == user[:len(newID)] and user[len(newID):].isnumeric():
                 newID = ''.join([newID,str(int(user[len(newID):])+1)])
                 hasID = True
                 break
         if not hasID : 
             newID = ''.join([newID,'1'])
-        fData.update({newID : data})
-        self.writeData(fData)
+        ssh_fonctions.createUser(self.client,self.sudoPass,[newID,lastname,firstname,pwd,site])
         self.menu()
         return
 
     def scanPorts(self):
         clear()
-        port = input("Entrez le port final (entre 1 et 65,535) que vous voulez scanner, entrez 'q' pour quitter : ")
-        if port == 'q':
+        plage = input("Entrez la plage de ports (entre 1 et 65,535 au format \"port1-port2\" avec port1<=port2) que vous voulez scanner, entrez 'q' pour quitter : ")
+        if plage == 'q':
             self.menu()
             return
-        if not port.isnumeric():
+        ports = plage.split("-")
+        if len(ports)!=2:
             self.scanPorts() 
             return
-        if int(port) < 1 or int(port) > 65535:
+        if int(ports[0]) < 1 or int(ports[0])>int(ports[1]) or int(ports[1]) > 65535:
             self.scanPorts() 
             return
-        scan = Thread(target=PortScanner.scan,daemon=True, args=(port,))
-        scan.start()
-        #scan.join()
+        sftp = self.client.open_sftp()
+        self.client.exec_command(f'touch /Projet/Scan/{ports[0]}-{ports[1]}.scan')
+        sftp.remove("/Projet/Scan/portScanLogs.txt")
+        sftp.close()
+        
         input('\nScan des ports lancé, appuyez sur \"Entrer\" pour continuer')
         self.menu()
         return
@@ -141,17 +138,17 @@ class AS:
     def deleteUser(self):
         clear()
         user = input('Veuillez entrer un User à supprimer : ').upper()
-        fData = self.readData()
-        if user in fData.keys():
+
+        if user in reversed(ssh_fonctions.listingUser(self.client,[list(ssh_fonctions.SitesID.values())])):
             valid = ''
             while valid not in ['y','n']:
                 valid = input(f'\nEtes-vous sûr de vouloir supprimer {user}?(y/n)').lower()
             if valid == 'n':
                 self.gestUsers()
                 return
-            fData = self.readData()
-            fData.pop(user)
-            self.writeData(fData)
+            stdin , stdout, stderr = self.client.exec_command(f'sudo -S deluser {user}')
+            stdin.write(self.sudoPass+'\n')
+            stdin.flush()
             input('Appuyer sur ENTRER pour revenir au menu')
             self.gestUsers()
             return
@@ -162,17 +159,42 @@ class AS:
 
     def listingUser(self):
         clear()
-        fData = self.readData()
-        pprint(fData)
-        input('Appuyer sur ENTRER pour revenir au menu')
+        choice = input("""Quel site voulez-vous lister : 
+1) Tous
+2) Paris
+3) Grenoble
+4) Strasbourg
+5) Rennes
+6) Retour
+
+""")    
+        site = list()
+        if choice == '1':
+            site.append(list(ssh_fonctions.SitesID.values()))
+        elif choice == '2':
+            site.append([ssh_fonctions.SitesID['paris'],None])
+        elif choice == '3':
+            site.append([ssh_fonctions.SitesID['grenoble'],None])
+        elif choice == '4':
+            site.append([ssh_fonctions.SitesID['strasbourg'],None])
+        elif choice == '5':
+            site.append([ssh_fonctions.SitesID['rennes'],None])
+        else : 
+            self.createUser()
+            return
+        
+        users = ssh_fonctions.listingUser(self.client,site)
+        for user in users:
+            infos = user.split(':')
+            print(infos[0]+' '+infos[4]+' '+ssh_fonctions.IDSites[infos[3]])
+        input('\nAppuyer sur ENTRER pour revenir au menu')
         self.gestUsers()
         return
 
     def modifyUser(self):
         clear()
         user = input('Quel User voulez-vous modifier : ')
-        fData = self.readData()
-        if user.upper() in fData.keys():
+        if user.upper() in reversed(ssh_fonctions.listingUser(self.client,ssh_fonctions.SitesID.values())):
             clear()
             choice = input("""Que voulez-vous modifier : 
 1) Nom
@@ -187,10 +209,10 @@ class AS:
                 return
             choiceList = ['','Nom', 'Prénom','', 'Location']
             if choice == '3':
-                fData[user]['Hash'] = hashlib.sha256(input("\nMot de passe provisoire : ").encode()).hexdigest()
+                pass#fData[user]['Hash'] = hashlib.sha256(input("\nMot de passe provisoire : ").encode()).hexdigest()
             else:
-                fData[user][choiceList[int(choice)]] = input("\nEntrez la nouvelle valeur : ")
-            self.writeData(fData)
+                pass#fData[user][choiceList[int(choice)]] = input("\nEntrez la nouvelle valeur : ")
+
             self.gestUsers()
             return
         else:
@@ -198,13 +220,3 @@ class AS:
             self.gestUsers()
             return
     
-    def writeData(self,fData):
-        f = open(self.user_file_path, 'w')
-        json.dump(fData,f,indent=4)
-        f.close()
-    
-    def readData(self):
-        f = open(self.user_file_path, 'r')
-        fData = json.load(f)
-        f.close()
-        return fData
