@@ -1,11 +1,13 @@
 from clear import clear
 import json, hashlib, os, subprocess
 from pprint import pprint
+from threading import Thread
+import PortScanner
 
 class AS:
     ID = ""
     data = dict()
-    user_file_path = "C:\\Users\\Tony\\Documents\\Github\\Projet-Python\\Users.json"
+    user_file_path = "Projet-Python\\Users.json"
 
     def __init__(self, ID, data):
         self.ID = ID
@@ -32,6 +34,8 @@ class AS:
 
         if choice == '5':
             self.ping(input('\nVeuillez entrer un nom d\'hôte : '))
+        if choice == '6':
+            return
 
     def gestUsers(self):
         clear()
@@ -89,9 +93,7 @@ class AS:
             "Hash": hashlib.sha256(input("Mot de passe provisoire : ").encode()).hexdigest(),
             "Location": input("Localisation : ")
         }
-        f = open(self.user_file_path, 'r')
-        fData = json.load(f)
-        f.close()
+        self.readData()
         hasID = False
         for user in reversed(fData.keys()):
             if newID == user[:len(newID)]:
@@ -101,15 +103,26 @@ class AS:
         if not hasID : 
             newID = ''.join([newID,'1'])
         fData.update({newID : data})
-        f = open(self.user_file_path, 'w')
-        json.dump(fData,f,indent=4)
-        f.close()
+        self.writeData(fData)
         self.menu()
         return
 
     def scanPorts(self):
-        os.system('python3 PortScanner.py')
-        input('Scan des ports lancé, appuyez sur \"Entrer\" pour continuer')
+        clear()
+        port = input("Entrez le port final (entre 1 et 65,535) que vous voulez scanner, entrez 'q' pour quitter : ")
+        if port == 'q':
+            self.menu()
+            return
+        if not port.isnumeric():
+            self.scanPorts() 
+            return
+        if int(port) < 1 or int(port) > 65535:
+            self.scanPorts() 
+            return
+        scan = Thread(target=PortScanner.scan,daemon=True, args=[port])
+        scan.start()
+        #scan.join()
+        input('\nScan des ports lancé, appuyez sur \"Entrer\" pour continuer')
         self.menu()
         return
 
@@ -128,9 +141,7 @@ class AS:
     def deleteUser(self):
         clear()
         user = input('Veuillez entrer un User à supprimer : ').upper()
-        f = open(self.user_file_path, 'r')
-        fData = json.load(f)
-        f.close()
+        self.readData()
         if user in fData.keys():
             valid = ''
             while valid not in ['y','n']:
@@ -138,13 +149,9 @@ class AS:
             if valid == 'n':
                 self.gestUsers()
                 return
-            f = open(self.user_file_path, 'r')
-            fData = json.load(f)
-            f.close()
+            self.readData()
             fData.pop(user)
-            f = open(self.user_file_path, 'w')
-            json.dump(fData,f,indent=4)
-            f.close()
+            self.writeData(fData)
             input('Appuyer sur ENTRER pour revenir au menu')
             self.gestUsers()
             return
@@ -155,9 +162,7 @@ class AS:
 
     def listingUser(self):
         clear()
-        f = open(self.user_file_path, 'r')
-        fData = json.load(f)
-        f.close()
+        self.readData()
         pprint(fData)
         input('Appuyer sur ENTRER pour revenir au menu')
         self.gestUsers()
@@ -166,9 +171,7 @@ class AS:
     def modifyUser(self):
         clear()
         user = input('Quel User voulez-vous modifier : ')
-        f = open(self.user_file_path, 'r')
-        fData = json.load(f)
-        f.close()
+        self.readData()
         if user.upper() in fData.keys():
             clear()
             choice = input("""Que voulez-vous modifier : 
@@ -187,12 +190,21 @@ class AS:
                 fData[user]['Hash'] = hashlib.sha256(input("\nMot de passe provisoire : ").encode()).hexdigest()
             else:
                 fData[user][choiceList[int(choice)]] = input("\nEntrez la nouvelle valeur : ")
-            f = open(self.user_file_path, 'w')
-            json.dump(fData,f,indent=4)
-            f.close()
+            self.writeData(fData)
             self.gestUsers()
             return
         else:
             input("\nCe user n'existe pas ou ne fait pas parti de votre site, appuyez sur \"entrer\" pour continuer")
             self.gestUsers()
             return
+    
+    def writeData(self,fData):
+        f = open(self.user_file_path, 'w')
+        json.dump(fData,f,indent=4)
+        f.close()
+    
+    def readData(self):
+        f = open(self.user_file_path, 'r')
+        fData = json.load(f)
+        f.close()
+        return fData

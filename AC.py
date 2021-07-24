@@ -5,7 +5,7 @@ from pprint import pprint
 class AC:
     ID = ""
     data = dict()
-    user_file_path = "C:\\Users\\Tony\\Documents\\Github\\Projet-Python\\Users.json"
+    user_file_path = "Projet-Python\\Users.json"
 
     def __init__(self, ID, data):
         self.ID = ID
@@ -24,6 +24,12 @@ class AC:
 """)
         if choice == '1':
             self.gestUsers()
+
+        if choice == '3':
+            return
+        else:
+            self.menu()
+            return
 
     def gestUsers(self):
         clear()
@@ -49,6 +55,7 @@ class AC:
             self.menu()
         if choice == '6':
             return
+
             
     
     def createUser(self):
@@ -59,9 +66,7 @@ class AC:
             "Hash": hashlib.sha256(input("Mot de passe provisoire : ").encode()).hexdigest(),
             "Location": self.getLocation
         }
-        f = open(self.user_file_path, 'r')
-        fData = json.load(f)
-        f.close()
+        self.readData()
         newID = ''
         for user in reversed(fData.keys()):
             if 'U' == user[0]:
@@ -70,18 +75,14 @@ class AC:
             else : 
                 newID = 'U1'
         fData.update({newID : data})
-        f = open(self.user_file_path, 'w')
-        json.dump(fData,f,indent=4)
-        f.close()
+        self.writeData(fData)
         self.gestUsers()
         return
 
     def modifyUser(self):
         clear()
         user = input('Quel User voulez-vous modifier : ')
-        f = open(self.user_file_path, 'r')
-        fData = json.load(f)
-        f.close()
+        self.readData()
         if user in fData.keys():
             choice = input("""Que voulez-vous modifier : 
 1) Nom
@@ -111,9 +112,7 @@ class AC:
     def deleteUser(self):
         clear()
         user = input('Veuillez entrer un User à supprimer : ').upper()
-        f = open(self.user_file_path, 'r')
-        fData = json.load(f)
-        f.close()
+        self.readData()
         if user in fData.keys() and self.getLocation() == fData[user]['Location']:
             valid = ''
             while valid not in ['y','n']:
@@ -121,13 +120,9 @@ class AC:
             if valid == 'n':
                 self.gestUsers()
                 return
-            f = open(self.user_file_path, 'r')
-            fData = json.load(f)
-            f.close()
+            self.readData()
             fData.pop(user)
-            f = open(self.user_file_path, 'w')
-            json.dump(fData,f,indent=4)
-            f.close()
+            self.writeData(fData)
             input('Appuyer sur ENTRER pour revenir au menu')
             self.gestUsers()
         else:
@@ -137,10 +132,19 @@ class AC:
     
     def listingUser(self):
         clear()
-        f = open(self.user_file_path, 'r')
-        fData = json.load(f)
-        f.close()
+        self.readData()
         pprint(fData)
         input('Appuyer sur ENTRER pour revenir au menu')
         self.gestUsers()
         return
+
+    def writeData(self,fData):
+        f = open(self.user_file_path, 'w')
+        json.dump(fData,f,indent=4)
+        f.close()
+    
+    def readData(self):
+        f = open(self.user_file_path, 'r')
+        fData = json.load(f)
+        f.close()
+        return fData
