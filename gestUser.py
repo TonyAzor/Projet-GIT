@@ -1,61 +1,34 @@
-import json, os, hashlib, pprint, getpass
+import json, os, pprint, getpass, paramiko,sys
 import AS
 from clear import clear
 
 
-user_file_path = "Projet-Python\\Users.json"
-userFile = open(user_file_path, 'r')
-data = json.load(userFile)
-userFile.close()
-
 current_user = None
 
-def reloadJson():
-    userFile = open(user_file_path, 'r')
-    data = json.load(userFile)
-    userFile.close()
-
-def write(data):
-    reloadJson()
-    userFile = open(user_file_path, 'w')
-    json.dump(data, userFile)
-    userFile.close()
 
 def authentication():
-    reloadJson()
-    ID = input("Veuillez entrer votre ID : ").upper()
-    pwd = hashlib.sha256(getpass.getpass("Veuillez entrer votre mot de passe : ").encode()).hexdigest()
-    if ID not in data.keys():
-        print('Utilisateur introuvable')
-        authentication()
-        return
-    elif "AS" in ID:
-        if data[ID]["Hash"] == pwd:
-            print(f"Admin Suprème {ID} connecté")
-            current_user = AS.AS(ID,data[ID])
-            current_user.menu()
-        else:
-            input("Pas le bon mot de passe appuyez sur Entrer pour recommencer")
-            authentication()
-            return
+    clear()
+    ID = input("Veuillez entrer votre ID : ")
+    pwd = getpass.getpass("Veuillez entrer votre mot de passe : ")
+    try:
 
-    elif "AC" in ID:
-        if data[ID]["Hash"] == pwd:
-            print(f"Admin Suprème {ID} connecté")
-            current_user = AC.AC(ID,data[ID])
+        # Connect to remote host
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect('192.168.140.128', username=ID, password=pwd,port=22)
+        if "as" in ID:
+            current_user = AS.AS(ID,client,pwd)
             current_user.menu()
-        else:
-            input("Pas le bon mot de passe appuyez sur Entrer pour recommencer")
-            authentication()
-            return
-    elif "U" in ID:
-        if data[ID]["Hash"] == pwd:
-            print(f"Admin Suprème {ID} connecté")
-        else:
-            input("Pas le bon mot de passe appuyez sur Entrer pour recommencer")
-            authentication()
-            return
 
+        elif "ac" in ID:
+            #current_user = AC.AC(ID,data[ID])
+            pass#current_user.menu()
+        elif "u" in ID:
+            pass
+        client.close()
+        sys.exit(0)
+    except IndexError:
+        pass
 
 authentication()
 #clear()
