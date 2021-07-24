@@ -1,5 +1,6 @@
 from clear import clear
-import ssh_fonctions
+import random, os
+import ssh_fonctions, BruteForce
 from datetime import datetime
 
 class AC:
@@ -28,7 +29,7 @@ class AC:
             self.gestUsers()
             return
         if choice == '2':
-            self.auditPut()
+            self.auditMenu()
             return
         elif choice == '3':
             return
@@ -80,7 +81,9 @@ class AC:
         clear()
         lastname = input("Nom : ")
         firstname = input("Prénom : ")
-        pwd = input("Mot de passe provisoire : ")
+        pwd = ""
+        for i in range(4):
+            pwd += random.choice(BruteForce.liste)
         site = self.Site
         hasID = False
         for user in reversed(ssh_fonctions.userNameListing(self.client,[self.Site])):
@@ -92,6 +95,7 @@ class AC:
             newID = ''.join([newID,'1'])
         ssh_fonctions.createUser(self.client,self.sudoPass,[newID,lastname,firstname,pwd,site])
         ssh_fonctions.logWrite(self.client,f"{self.ID} a créé l'user {newID} s'appelant {firstname} {lastname} dans le site de {site}")
+        input(f"L'user {newID} s'appelant {firstname} {lastname} a été créé dans le site de {site}")
         self.menu()
         return
 
@@ -110,7 +114,7 @@ class AC:
             stdin , stdout, stderr = self.client.exec_command(f'sudo -S userdel --force -r {user}')
             stdin.write(self.sudoPass+'\n')
             stdin.flush()
-            input('Appuyer sur ENTRER pour revenir au menu')
+            input(f"L'user {user} a été supprimé")
             ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a supprimé l'user {user}")
             self.gestUsers()
             return
@@ -154,7 +158,7 @@ class AC:
                 stdin.write(self.sudoPass+'\n')
                 stdin.flush()     
                 ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a mofifié les nom et prénom de l'user {user}")
-                
+                input(f"Le nom de {user} a été modifié")
             if choice == '2':
                 newPassword = input("Veuillez entrer le nouveau mot de passe, entrez 'q' pour revenir : ")
                 if newPassword == 'q':
@@ -165,6 +169,7 @@ class AC:
                 stdin.write(self.sudoPass+'\n')
                 stdin.flush()   
                 ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a modifié le mot de passe de l'user {user}") 
+                input(f"Le mot de passe de {user} a été modifié")
             if choice == '3':
                 newGroup = input("Veuillez entrer le nouveau groupe, entrez 'q' pour revenir : ")
                 if newName == 'q':
@@ -175,6 +180,7 @@ class AC:
                 stdin.write(self.sudoPass+'\n')
                 stdin.flush()
                 ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"{self.ID} a déplacé l'user {user} au site de {newGroup}")  
+                input(f"Le site de {user} a été modifié")
             if choice == '4':
                 self.gestUsers()
                 return
@@ -186,7 +192,7 @@ class AC:
         self.gestUsers()
         return
     
-    def auditPut(self):
+    def auditMenu(self):
         clear()
         aType = input(""""Veuillez indiquer quel est le type d'audit que vous souhaitez envoyer :
 1) Comptable
@@ -203,21 +209,45 @@ class AC:
             self.menu()
             return
         elif aType in [str(i) for i in range(1,7)]:
+            self.actionAuditMenu(typeList[int(aType)])
+            return
+        else:
+            self.auditMenu()
+            return
+        
+    def actionAuditMenu(self,aType):
+        clear()
+        ssh_fonctions.fileListing(self.client,f"/Projet/Audits/{self.Site}/{aType}/")
+        action = input("""veuikllez sélectionner l'action que vous voulez faire :
+1) Uploader
+2) Télécharger
+3) Retour\n\n""")
+        if action == '1':
             aFile = input("Veuillez glissez le fichier dans le terminal : \n\n")
             try:
                 open(aFile,'r')
             except:
                 input("Le chemin du fichier n'est pas valide")
-                self.auditPut()
+                self.actionAuditMenu(aType)
                 return
             sftp = self.client.open_sftp()
-            sftp.put(aFile,"/Projet/Audits/"+str(ssh_fonctions.IDSites[self.Site])+"/"+typeList[int(aType)]+"/"+aFile.split("\\")[-1])
+            sftp.put(aFile,"/Projet/Audits/"+str(ssh_fonctions.IDSites[self.Site])+"/"+aType+"/"+aFile.split("\\")[-1])
             sftp.close()
-            ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a uploadé le fichier {aFile} au site de {self.Site} dans le répertoire d'audit {typeList[int(aType)]}")
+            ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a uploadé le fichier {aFile} au site de {str(ssh_fonctions.IDSites[self.Site])} dans le répertoire d'audit {aType}")
             input("Le fichier a été envoyé")
             self.menu()
             return
-        else:
-            self.auditPut()
-            return
-        
+        elif action == '2':
+            try:
+                files = input("Entrez le ou les noms (séparés par une \",\") des fichiers à télécharger : \n\n")
+                sftp = self.client.open_sftp()
+                for f in files.split(","):
+                    sftp.get(f"/Projet/Audits/{str(ssh_fonctions.IDSites[self.Site])}/{aType}/{f}",f"C:\\Users\\{os.environ['USERNAME']}\\Desktop\\{f}")
+                sftp.close()
+                ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a téléchargé les fichiers {files} du site de {str(ssh_fonctions.IDSites[self.Site])} dans le répertoire d'audit {aType}",self.sudoPass)
+                input("Les fichiers ont été téléchargés")
+            except IOError as e:
+                input(e)
+        elif action == '3':
+            self.auditMenu()
+            return    
