@@ -227,7 +227,7 @@ class AS:
                 command = f"sudo -S usermod -c \"{newName}\" {user}" 
                 stdin , stdout, stderr = self.client.exec_command(command)
                 stdin.write(self.sudoPass+'\n')
-                stdin.flush()  
+                stdin.flush()
                 ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a modifié les nom et prénom de l'user {user}",self.sudoPass)  
                 input(f"Le nom de {user} a été modifié")
                 
@@ -236,10 +236,10 @@ class AS:
                 if newPassword == 'q':
                     self.gestUsers()
                     return
-                command = f"sudo -S chpasswd <<< {user}:{newPassword}" 
+                command = f"sudo -S ls && sudo chpasswd <<< {user}:{newPassword}" # ls uniquement pour utiliser le sudo
                 stdin , stdout, stderr = self.client.exec_command(command)
                 stdin.write(self.sudoPass+'\n')
-                stdin.flush()    
+                stdin.flush()
                 ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a modifié le mot de passe de l'user {user}",self.sudoPass)
                 input(f"Le mot de passe de {user} a été modifié")
             elif choice == '3':
