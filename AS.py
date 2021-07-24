@@ -90,7 +90,7 @@ class AS:
         pwd = input("Mot de passe provisoire : ")
         site = input("Site : ")
         hasID = False
-        for user in reversed(ssh_fonctions.listingUser(self.client,[list(ssh_fonctions.SitesID.values())])):
+        for user in reversed(ssh_fonctions.userNameListing(self.client,[list(ssh_fonctions.SitesID.values())])):
             if newID == user[:len(newID)] and user[len(newID):].isnumeric():
                 newID = ''.join([newID,str(int(user[len(newID):])+1)])
                 hasID = True
@@ -139,7 +139,7 @@ class AS:
         clear()
         user = input('Veuillez entrer un User à supprimer : ').upper()
 
-        if user in reversed(ssh_fonctions.listingUser(self.client,[list(ssh_fonctions.SitesID.values())])):
+        if user in reversed(ssh_fonctions.userNameListing(self.client,[list(ssh_fonctions.SitesID.values())])):
             valid = ''
             while valid not in ['y','n']:
                 valid = input(f'\nEtes-vous sûr de vouloir supprimer {user}?(y/n)').lower()
@@ -183,10 +183,10 @@ class AS:
             self.createUser()
             return
         
-        users = ssh_fonctions.listingUser(self.client,site)
+        users = ssh_fonctions.userListing(self.client,site)
         for user in users:
             infos = user.split(':')
-            print(infos[0]+' '+infos[4]+' '+ssh_fonctions.IDSites[infos[3]])
+            print(infos[0]+'\t'+infos[4]+'\t'+ssh_fonctions.IDSites[infos[3]]+'\n')
         input('\nAppuyer sur ENTRER pour revenir au menu')
         self.gestUsers()
         return
@@ -194,7 +194,7 @@ class AS:
     def modifyUser(self):
         clear()
         user = input('Quel User voulez-vous modifier : ')
-        if user.upper() in reversed(ssh_fonctions.listingUser(self.client,ssh_fonctions.SitesID.values())):
+        if user.upper() in reversed(ssh_fonctions.userNameListing(self.client,[list(ssh_fonctions.SitesID.values())])):
             clear()
             choice = input("""Que voulez-vous modifier : 
 1) Nom
@@ -220,3 +220,7 @@ class AS:
             self.gestUsers()
             return
     
+    def bruteForce(self):
+        clear()
+        user = input('De quel user souhaitez vous brute force le mot de passe ? ')
+        
