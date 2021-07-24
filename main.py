@@ -1,5 +1,5 @@
 import json, os, pprint, getpass, paramiko,sys
-import AS, AC
+import AS, AC, U
 from clear import clear
 
 
@@ -24,7 +24,8 @@ def authentication():
             current_user = AC.AC(ID,client,pwd)
             current_user.menu()
         elif "u" in ID.lower():
-            pass
+            current_user = U.U(ID,client)
+            current_user.menu()
         client.close()
         sys.exit(0)
     except paramiko.ssh_exception.AuthenticationException as e:
