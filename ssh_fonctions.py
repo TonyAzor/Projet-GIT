@@ -48,19 +48,25 @@ def userSite(client, ID):
             return user.split(':')[3]
 
 def fileListing(client, path):
-    #stdin , stdout, stderr = client.exec_command("cd ")
     stdin , stdout, stderr = client.exec_command("ls "+path)
-    
-    
     print(stdout.read().decode())
 
-    
-    # Setup sftp connection and transmit this script
-    #sftp = client.open_sftp()
-    #sftp.put('./PortScanner.py', '/tmp/PortScanner.py')
-    #sftp.close()
+def logWrite(client, line, sudoPass = ""):
+    sftp = client.open_sftp()
+    try:
+        sftp.open("/Projet/Logs/logs",'r')
+        sftp.close()
+    except:
+        sftp.close()
+        if sudoPass == "":
+            return
+        logReset(client,sudoPass)
+    client.exec_command(f"echo {line}\n >> /Projet/Logs/logs")
 
-#client = paramiko.SSHClient()
-#client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-#client.connect('192.168.140.128', username="as1", password="Lamortquitue94&&",port=22)
-#print(passwordListing())
+def logReset(client, sudoPass):
+    sftp = client.open_sftp()
+    sftp.open("/Projet/Logs/logs",'w')
+    sftp.close()
+    stdin , stdout, stderr = client.exec_command("sudo -S chmod 777 /Projet/Logs/logs")
+    stdin.write(sudoPass+'\n')
+    
