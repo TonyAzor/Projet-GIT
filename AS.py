@@ -28,17 +28,19 @@ class AS:
 """)
         if choice == '1':
             self.gestUsers()
-        if choice == '2':
+        elif choice == '2':
             self.ftpMenu()
-
-        if choice == '3':
+        elif choice == '3':
             self.scanPorts()
-        if choice == '4':
+        elif choice == '4':
             self.bruteForceMenu()
-        if choice == '5':
+        elif choice == '5':
             self.ping(input('\nVeuillez entrer un nom d\'hôte : '))
-        if choice == '6':
+        elif choice == '6':
             return
+        else:
+            self.menu()
+        return
 
     def gestUsers(self):
         clear()
@@ -54,17 +56,19 @@ class AS:
 """)
         if choice == '1':
             self.createUser()
-        if choice == '2':
+        elif choice == '2':
             self.modifyUser()
-        if choice == '3':
+        elif choice == '3':
             self.deleteUser()
-        if choice == '4':
+        elif choice == '4':
             self.listingUser()
-        if choice == '5':
+        elif choice == '5':
             self.menu()
-        if choice == '6':
+        elif choice == '6':
             return
-
+        else:
+            self.gestUsers()
+        return
     def createUser(self):
         newID = ''
         clear()
@@ -111,9 +115,11 @@ class AS:
             return
         ports = plage.split("-")
         if len(ports)!=2:
+            input("Vous n'avez pas mis \"-\" entre les deux port ou vous n'avez pas mis le bon nombre de ports")
             self.scanPorts() 
             return
         if int(ports[0]) < 1 or int(ports[0])>int(ports[1]) or int(ports[1]) > 65535:
+            input("vous n'avez pas respecté la règle : entre 1 et 65,535 au format \"port1-port2\" avec port1<=port2")
             self.scanPorts() 
             return
         sftp = self.client.open_sftp()
@@ -155,7 +161,7 @@ class AS:
             self.gestUsers()
             return
         else:
-            input("Ce user n'existe pas ou ne fait pas parti de votre site, appuyez sur \"entrer\" pour continuer")
+            input("Ce user n'existe pas, appuyez sur \"entrer\" pour continuer")
             self.gestUsers()
             return
 
@@ -204,9 +210,7 @@ class AS:
 1) Nom et prénom
 2) Mot de passe
 3) Site
-4) Retour
-
-""")    
+4) Retour\n\n""")    
             if choice == '1':
                 newName = input("Veuillez entrer le nouveau nom ET prénom, entrez 'q' pour revenir : ")
                 if newName == 'q':
@@ -231,7 +235,9 @@ class AS:
                 if newName == 'q':
                     self.gestUsers()
                     return
-                command = f"sudo -S usermod -g {newGroup} {user}" 
+                command = f"sudo -S usermod -g {newGroup} {user}"
+                if "a" in user.lower():
+                    command += " -G sudo"
                 stdin , stdout, stderr = self.client.exec_command(command)
                 stdin.write(self.sudoPass+'\n')
                 stdin.flush()  
@@ -262,7 +268,7 @@ class AS:
         if user in pwdDict.keys():
             scanThread = Thread(target=BruteForce.bruteForce,daemon=True, args=("", int(length), pwdDict[user].split('$')[2], pwdDict[user], user,self.client))
             scanThread.start()
-        input(f"\nLe brute force a été lancé sur le mot de passe de {user}, veuillez ne pas éteindre l'application pour ne pas arrêter le processus.")
+        input(f"\nLe brute force a été lancé sur le mot de passe de {user}, veuillez ne pas fermer l'application pour ne pas arrêter le processus.")
         self.menu()
         return
         
@@ -319,6 +325,9 @@ class AS:
 5) Accéder aux archives
 6) Retour\n\n""")
         if action =="6":
+            if archives == "archives/":
+                self.auditFtpMenu(site,aType,"")
+                return
             self.siteFtpMenu(site)
             return
         elif action == "1":
