@@ -27,8 +27,9 @@ def authentication():
             pass
         client.close()
         sys.exit(0)
-    except IndexError:
-        pass
+    except paramiko.ssh_exception.AuthenticationException as e:
+        input(e)
+        authentication()
 
 authentication()
 #clear()
