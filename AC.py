@@ -1,5 +1,6 @@
 from clear import clear
 import ssh_fonctions
+from datetime import datetime
 
 class AC:
     ID = ""
@@ -89,6 +90,7 @@ class AC:
         if not hasID : 
             newID = ''.join([newID,'1'])
         ssh_fonctions.createUser(self.client,self.sudoPass,[newID,lastname,firstname,pwd,site])
+        ssh_fonctions.logWrite(self.client,f"{self.ID} a créé l'user {newID} s'appelant {firstname} {lastname} dans le site de {site}")
         self.menu()
         return
 
@@ -108,6 +110,7 @@ class AC:
             stdin.write(self.sudoPass+'\n')
             stdin.flush()
             input('Appuyer sur ENTRER pour revenir au menu')
+            ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a supprimé l'user {user}")
             self.gestUsers()
             return
         else:
@@ -124,6 +127,7 @@ class AC:
             infos = user.split(':')
             print(infos[0]+'\t'+infos[4]+'\t'+ssh_fonctions.IDSites[infos[3]]+'\n')
         input('\nAppuyer sur ENTRER pour revenir au menu')
+        ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a demandé une liste des users")
         self.gestUsers()
         return
 
@@ -148,6 +152,7 @@ class AC:
                 stdin , stdout, stderr = self.client.exec_command(command)
                 stdin.write(self.sudoPass+'\n')
                 stdin.flush()     
+                ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a mofifié les nom et prénom de l'user {user}")
                 
             if choice == '2':
                 newPassword = input("Veuillez entrer le nouveau mot de passe, entrez 'q' pour revenir : ")
@@ -157,7 +162,8 @@ class AC:
                 command = f"sudo -S chpasswd <<< {user}:{newPassword}" 
                 stdin , stdout, stderr = self.client.exec_command(command)
                 stdin.write(self.sudoPass+'\n')
-                stdin.flush()    
+                stdin.flush()   
+                ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a modifié le mot de passe de l'user {user}") 
             if choice == '3':
                 newGroup = input("Veuillez entrer le nouveau groupe, entrez 'q' pour revenir : ")
                 if newName == 'q':
@@ -166,15 +172,14 @@ class AC:
                 command = f"sudo -S usermod -g {newGroup} {user}" 
                 stdin , stdout, stderr = self.client.exec_command(command)
                 stdin.write(self.sudoPass+'\n')
-                stdin.flush()  
+                stdin.flush()
+                ssh_fonctions.logWrite(self.client,datetime.now()+f"{self.ID} a déplacé l'user {user} au site de {newGroup}")  
             if choice == '4':
                 self.gestUsers()
                 return
             else:
                 self.modifyUser()
                 return
-            
-
         else:
             input("\nCe user n'existe pas, appuyez sur \"entrer\" pour continuer")
         self.gestUsers()
@@ -207,6 +212,7 @@ class AC:
             sftp = self.client.open_sftp()
             sftp.put(aFile,"/Projet/Audits/"+str(ssh_fonctions.IDSites[self.Site])+"/"+typeList[int(aType)]+"/"+aFile.split("\\")[-1])
             sftp.close()
+            ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a uploadé le fichier {aFile} au site de {self.Site} dans le répertoire d'audit {typeList[int(aType)]}")
             input("Le fichier a été envoyé")
             self.menu()
             return
