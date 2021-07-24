@@ -159,7 +159,7 @@ class AC:
                 if newPassword == 'q':
                     self.gestUsers()
                     return
-                command = f"sudo -S chpasswd <<< {user}:{newPassword}" 
+                command = f"sudo -S ls && sudo chpasswd <<< {user}:{newPassword}" 
                 stdin , stdout, stderr = self.client.exec_command(command)
                 stdin.write(self.sudoPass+'\n')
                 stdin.flush()   
