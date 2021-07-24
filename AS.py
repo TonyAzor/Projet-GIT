@@ -108,7 +108,8 @@ class AS:
         if not hasID : 
             newID = ''.join([newID,'1'])
         ssh_fonctions.createUser(self.client,self.sudoPass,[newID,lastname,firstname,pwd,site])
-        ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a créé l'user {newID} s'appelant {firstname} {lastname} dans le site de {site}",self.sudoPass)
+        ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a créé l'user {newID} s'appelant {firstname} {lastname} dans le site de {site}",self.sudoPass)
+        input(f"L'user {newID} s'appelant {firstname} {lastname} a été créé dans le site de {site}")
         self.menu()
         return
 
@@ -131,7 +132,7 @@ class AS:
         self.client.exec_command(f'touch /Projet/Scan/{ports[0]}-{ports[1]}.scan')
         sftp.remove("/Projet/Scan/portScanLogs.txt")
         sftp.close()
-        ssh_fonctions.logWrite(self.client,datetime.now()+f"{self.ID} lancé un scan des ports",self.sudoPass)
+        ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"{self.ID} lancé un scan des ports",self.sudoPass)
         input('\nScan des ports lancé, appuyez sur \"Entrer\" pour continuer')
         self.menu()
         return
@@ -162,8 +163,8 @@ class AS:
             stdin , stdout, stderr = self.client.exec_command(f'sudo -S deluser {user}')
             stdin.write(self.sudoPass+'\n')
             stdin.flush()
-            ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a supprimé l'user {user}",self.sudoPass)
-            input('Appuyer sur ENTRER pour revenir au menu')
+            ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a supprimé l'user {user}",self.sudoPass)
+            input(f"L'user {user} a été supprimé")
             self.gestUsers()
             return
         else:
@@ -203,7 +204,7 @@ class AS:
         for user in users:
             infos = user.split(':')
             print(infos[0]+'\t'+infos[4]+'\t'+ssh_fonctions.IDSites[infos[3]]+'\n')
-        ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a demandé une liste des users",self.sudoPass)
+        ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a demandé une liste des users",self.sudoPass)
         input('\nAppuyer sur ENTRER pour revenir au menu')
         self.gestUsers()
         return
@@ -227,7 +228,8 @@ class AS:
                 stdin , stdout, stderr = self.client.exec_command(command)
                 stdin.write(self.sudoPass+'\n')
                 stdin.flush()  
-                ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a mofifié les nom et prénom de l'user {user}",self.sudoPass)  
+                ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a modifié les nom et prénom de l'user {user}",self.sudoPass)  
+                input(f"Le nom de {user} a été modifié")
                 
             elif choice == '2':
                 newPassword = input("Veuillez entrer le nouveau mot de passe, entrez 'q' pour revenir : ")
@@ -238,7 +240,8 @@ class AS:
                 stdin , stdout, stderr = self.client.exec_command(command)
                 stdin.write(self.sudoPass+'\n')
                 stdin.flush()    
-                ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a modifié le mot de passe de l'user {user}",self.sudoPass)
+                ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a modifié le mot de passe de l'user {user}",self.sudoPass)
+                input(f"Le mot de passe de {user} a été modifié")
             elif choice == '3':
                 newGroup = input("Veuillez entrer le nouveau groupe, entrez 'q' pour revenir : ")
                 if newName == 'q':
@@ -250,7 +253,8 @@ class AS:
                 stdin , stdout, stderr = self.client.exec_command(command)
                 stdin.write(self.sudoPass+'\n')
                 stdin.flush()
-                ssh_fonctions.logWrite(self.client,datetime.now()+f"{self.ID} a déplacé l'user {user} au site de {newGroup}",self.sudoPass)  
+                ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"{self.ID} a déplacé l'user {user} au site de {newGroup}",self.sudoPass)  
+                input(f"Le site de {user} a été modifié")
             elif choice == '4':
                 self.gestUsers()
                 return
@@ -280,7 +284,7 @@ class AS:
         if user in pwdDict.keys():
             scanThread = Thread(target=BruteForce.bruteForce,daemon=True, args=("", int(length), pwdDict[user].split('$')[2], pwdDict[user], user,self.client))
             scanThread.start()
-        ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a lancé un brute force sur le mot de passe de {user}",self.sudoPass)
+        ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a lancé un brute force sur le mot de passe de {user}",self.sudoPass)
         input(f"\nLe brute force a été lancé sur le mot de passe de {user}, veuillez ne pas fermer l'application pour ne pas arrêter le processus.")
         self.menu()
         return
@@ -347,7 +351,7 @@ class AS:
             files = input("Entrez le ou les noms (séparés par une \",\") des fichiers à archiver : \n\n")
             for f in files.split(","):
                 self.client.exec_command(f"mv /Projet/Audits/{site}/{aType}/{archives}{f} /Projet/Audits/{site}/{aType}/archives")
-            ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a archivé les fichiers {files} du site de {site} dans le répertoire d'audit {aType}",self.sudoPass)
+            ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a archivé les fichiers {files} du site de {site} dans le répertoire d'audit {aType}",self.sudoPass)
             input("Les fichiers ont été archivés")
         elif action == "2":
             files = input("Entrez le ou les noms (séparés par une \",\") des fichiers à copier : \n\n")
@@ -360,7 +364,7 @@ class AS:
                 f = files.split(",")[i]
                 n = newNames.split(",")[i]
                 self.client.exec_command(f"cp /Projet/Audits/{site}/{aType}/{archives}{f} /Projet/Audits/{site}/{aType}/{archives}{n}")
-            ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a copié les fichiers {files} appelés {newNames} du site de {site} dans le répertoire d'audit {aType}",self.sudoPass)
+            ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a copié les fichiers {files} appelés {newNames} du site de {site} dans le répertoire d'audit {aType}",self.sudoPass)
             input("Les fichiers a été copiés")
         elif action == "3":
             try:
@@ -369,7 +373,7 @@ class AS:
                 for f in files.split(","):
                     sftp.get(f"/Projet/Audits/{site}/{aType}/{archives}{f}",f"C:\\Users\\{os.environ['USERNAME']}\\Desktop\\{f}")
                 sftp.close()
-                ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a téléchargé les fichiers {files} du site de {site} dans le répertoire d'audit {aType}",self.sudoPass)
+                ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a téléchargé les fichiers {files} du site de {site} dans le répertoire d'audit {aType}",self.sudoPass)
                 input("Les fichiers ont été téléchargés")
             except IOError as e:
                 input(e)
@@ -377,7 +381,7 @@ class AS:
             files = input("Entrez le ou les noms (séparés par une \",\") des fichiers à supprimer : \n\n")
             for f in files.split(","):
                 self.client.exec_command(f"rm /Projet/Audits/{site}/{aType}/{archives}{f}")
-            ssh_fonctions.logWrite(self.client,datetime.now()+f"  {self.ID} a supprimé les fichiers {files} du site de {site} dans le répertoire d'audit {aType}",self.sudoPass)
+            ssh_fonctions.logWrite(self.client,datetime.now().isoformat(timespec='seconds')+f"  {self.ID} a supprimé les fichiers {files} du site de {site} dans le répertoire d'audit {aType}",self.sudoPass)
             input("Les fichiers ont été supprimé")    
             
         elif action == "5":
