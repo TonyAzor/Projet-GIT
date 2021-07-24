@@ -1,4 +1,4 @@
-+from clear import clear
+from clear import clear
 import json, hashlib, os, subprocess
 from pprint import pprint
 
@@ -72,37 +72,38 @@ class AS:
                 newID = 'U'
                 ok = True
             elif newID == '2':
-                newID = 'A'
+                newID = 'AC'
                 ok = True
             elif newID == '3':
                 newID = 'AS'
                 ok = True
+            elif newID == '4':
+                self.gestUsers()
+                return
             else : ok = False
-        password = hashlib.sha256()
-        Nom= input("Nom : ")
-        Prenom=input("Prénom : ")
-        password.update(input("Mot de passe provisoire : ").encode())
-        Location= input("Localisation : ")
         data = {
-            "Nom": Nom,
-            "Prénom":Prenom,
-            "Hash": password.hexdigest(),
-            "Location": Location
+            "Nom": input("Nom : "),
+            "Prénom":input("Prénom : "),
+            "Hash": hashlib.sha256(input("Mot de passe provisoire : ").encode()).hexdigest(),
+            "Location": input("Localisation : ")
         }
         f = open(self.user_file_path, 'r')
         fData = json.load(f)
         f.close()
+        hasID = False
         for user in reversed(fData.keys()):
             if newID == user[:len(newID)]:
                 newID = ''.join([newID,str(int(user[len(newID):])+1)])
+                hasID = True
                 break
-            else : 
-                newID = ''.join([newID,'1'])
+        if not hasID : 
+            newID = ''.join([newID,'1'])
         fData.update({newID : data})
         f = open(self.user_file_path, 'w')
         json.dump(fData,f,indent=4)
         f.close()
         self.menu()
+        return
 
     def scanPorts(self):
         os.system('python3 PortScanner.py')
@@ -144,6 +145,7 @@ class AS:
             f.close()
             input('Appuyer sur ENTRER pour revenir au menu')
             self.gestUsers()
+            return
         else:
             input("Ce user n'existe pas ou ne fait pas parti de votre site, appuyez sur \"entrer\" pour continuer")
             self.gestUsers()
@@ -166,6 +168,7 @@ class AS:
         fData = json.load(f)
         f.close()
         if user in fData.keys():
+            clear()
             choice = input("""Que voulez-vous modifier : 
 1) Nom
 2) Prénom
@@ -177,16 +180,14 @@ class AS:
             if choice == '5':
                 self.gestUsers()
                 return
-            choiceList = ['Nom', 'Prénom','', 'Location']
+            choiceList = ['','Nom', 'Prénom','', 'Location']
             if choice == '3':
-                password = hashlib.sha256()
-                password.update(input("Mot de passe provisoire : ").encode())
-                fData[user]['Hash'] = password.hexdigest()
+                fData[user]['Hash'] = hashlib.sha256(input("\nMot de passe provisoire : ").encode()).hexdigest()
             else:
-                fData[user][choiceList[int(choice)]] = password.hexdigest()
+                fData[user][choiceList[int(choice)]] = input("\nEntrez la nouvelle valeur : ")
             self.gestUsers()
             return
         else:
-            input("Ce user n'existe pas ou ne fait pas parti de votre site, appuyez sur \"entrer\" pour continuer")
+            input("\nCe user n'existe pas ou ne fait pas parti de votre site, appuyez sur \"entrer\" pour continuer")
             self.gestUsers()
             return

@@ -1,4 +1,4 @@
-+from clear import clear
+from clear import clear
 import json, hashlib, os
 from pprint import pprint
 
@@ -53,15 +53,11 @@ class AC:
     
     def createUser(self):
         clear()
-        password = hashlib.sha256()
-        Nom= input("Nom : "),
-        Prenom=input("Prénom : "),
-        password.update(input("Mot de passe provisoire : ").encode()),
         data = {
-            "Nom": Nom,
-            "Prénom":Prenom,
-            "Hash": password.hexdigest(),
-            "Location": self.getLocation()
+            "Nom": input("Nom : "),
+            "Prénom":input("Prénom : "),
+            "Hash": hashlib.sha256(input("Mot de passe provisoire : ").encode()).hexdigest(),
+            "Location": self.getLocation
         }
         f = open(self.user_file_path, 'r')
         fData = json.load(f)
