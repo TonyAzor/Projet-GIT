@@ -3,8 +3,7 @@ import AS
 from clear import clear
 
 
-user_file_path = "C:\\Users\\Tony\\Documents\\Github\\Projet-Python\\Users.json"
-
+user_file_path = "Projet-Python\\Users.json"
 userFile = open(user_file_path, 'r')
 data = json.load(userFile)
 userFile.close()
@@ -36,64 +35,27 @@ def authentication():
             current_user = AS.AS(ID,data[ID])
             current_user.menu()
         else:
-            print("Erreur")
+            input("Pas le bon mot de passe appuyez sur Entrer pour recommencer")
+            authentication()
+            return
+
     elif "AC" in ID:
         if data[ID]["Hash"] == pwd:
             print(f"Admin Suprème {ID} connecté")
+            current_user = AC.AC(ID,data[ID])
+            current_user.menu()
         else:
-            print("Erreur")
+            input("Pas le bon mot de passe appuyez sur Entrer pour recommencer")
+            authentication()
+            return
     elif "U" in ID:
         if data[ID]["Hash"] == pwd:
             print(f"Admin Suprème {ID} connecté")
         else:
-            print("Erreur")
+            input("Pas le bon mot de passe appuyez sur Entrer pour recommencer")
+            authentication()
+            return
 
-def menuAS():
-    clear()
-    print("""Veuillez choisir une action : 
-1) Gestion des utilisateurs
-2) Gestion du serveur ftp
-3) Scan des ports
-4) Simuler une attaque brute force
-5) Ping
-6) Quitter
-
-""")
-
-    clear()
-    print("""1) Gérer les administrateurs
-2) Gérer les utilisateurs
-3) Retour
-4) Quitter
-
-""")
-
-def menuAC():
-    clear()
-    print("""Veuillez choisir une action : 
-    1) Gestion des utilisateurs
-    2) Gestion du serveur ftp
-    4) Retour
-    5) Quitter
-    
-    """)
-
-def menuU():
-    clear()
-    print('a')  
-
-
-def gestUsers(ID):
-    clear()
-    if 'A' in ID:
-        print("""1) Créer un utilisateur
-        2) Modifier un utilisateur
-        3) Supprimer un utilisateur
-        4) Lister les utilisateurs
-        5) Retour
-        6) Quitter
-        
-        """)
 
 authentication()
 #clear()
