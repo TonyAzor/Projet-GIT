@@ -1,0 +1,14 @@
+[Unit]
+Description=Service portScanner
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/usr/bin/python3.8 /Projet/PortScanner.py
+
+[Install]
+WantedBy=multi-user.target
