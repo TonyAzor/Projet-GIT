@@ -26,7 +26,9 @@ class AC:
         if choice == '1':
             self.gestUsers()
             return
-
+        if choice == '2':
+            self.auditPut()
+            return
         elif choice == '3':
             return
         self.menu()
@@ -177,3 +179,38 @@ class AC:
             input("\nCe user n'existe pas, appuyez sur \"entrer\" pour continuer")
         self.gestUsers()
         return
+    
+    def auditPut(self):
+        clear()
+        aType = input(""""Veuillez indiquer quel est le type d'audit que vous souhaitez envoyer :
+1) Comptable
+2) Contractuel
+3) Environnement
+4) Interne
+5) Légal
+6) Organisationnel
+7) Retour
+
+""")    
+        typeList = ["","comptable","contractuel","environnement","interne","legal","organisationnel"]
+        if aType == "7":
+            self.menu()
+            return
+        elif aType in [str(i) for i in range(1,7)]:
+            aFile = input("Veuillez glissez le fichier dans le terminal : \n\n")
+            try:
+                open(aFile,'r')
+            except:
+                input("Le chemin du fichier n'est pas valide")
+                self.auditPut()
+                return
+            sftp = self.client.open_sftp()
+            sftp.put(aFile,"/Projet/Audits/"+str(ssh_fonctions.IDSites[self.Site])+"/"+typeList[int(aType)]+"/"+aFile.split("\\")[-1])
+            sftp.close()
+            input("Le fichier a été envoyé")
+            self.menu()
+            return
+        else:
+            self.auditPut()
+            return
+        
